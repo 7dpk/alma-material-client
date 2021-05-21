@@ -20,9 +20,13 @@ import Tooltip from "@material-ui/core/Tooltip";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 import DeleteIcon from "@material-ui/icons/Delete";
+import EditIcon from "@material-ui/icons/Edit";
 import FilterListIcon from "@material-ui/icons/FilterList";
 
-const URL = `https://student-leaderboard-api-y57renyjuq-uc.a.run.app/api/v1/students/`;
+import ModalUI from "./Modal";
+import Form from "./Form";
+
+const URL = `https://student-leaderboard-api-y57renyjuq-el.a.run.app/api/v1/students/`;
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -90,7 +94,7 @@ function EnhancedTableHead(props) {
             indeterminate={numSelected > 0 && numSelected < rowCount}
             checked={rowCount > 0 && numSelected === rowCount}
             onChange={onSelectAllClick}
-            inputProps={{ "aria-label": "select all desserts" }}
+            inputProps={{ "aria-label": "select all students" }}
           />
         </TableCell>
         {headCells.map((headCell) => (
@@ -145,6 +149,7 @@ const handleDelete = (selected, rows, setRows, setMessage) => {
       .delete(URL + id)
       .then(
         (res) => console.log(res.data),
+        localStorage.clear(),
         setRows(rows.filter((i) => !selected.includes(i.id))),
         setMessage("deleted")
       )
@@ -152,9 +157,14 @@ const handleDelete = (selected, rows, setRows, setMessage) => {
   });
 };
 
+const handleEdit = (selected, rows, setOpen, setStudent) => {
+  setStudent(rows.filter((s) => s.id === selected[0]));
+  setOpen(true);
+};
+
 const EnhancedTableToolbar = (props) => {
   const classes = useToolbarStyles();
-  const { selected, rows, setRows } = props;
+  const { selected, rows, setRows, setOpen, setStudent } = props;
   const numSelected = selected.length;
   const [message, setMessage] = React.useState("selected");
 
@@ -185,13 +195,28 @@ const EnhancedTableToolbar = (props) => {
       )}
 
       {numSelected > 0 ? (
-        <Tooltip title="Delete">
-          <IconButton aria-label="delete">
-            <DeleteIcon
-              onClick={() => handleDelete(selected, rows, setRows, setMessage)}
-            />
-          </IconButton>
-        </Tooltip>
+        <div>
+          <Tooltip title="Delete">
+            <IconButton aria-label="delete">
+              <DeleteIcon
+                onClick={() =>
+                  handleDelete(selected, rows, setRows, setMessage)
+                }
+              />
+            </IconButton>
+          </Tooltip>
+          {numSelected === 1 && (
+            <Tooltip title="Edit">
+              <IconButton aria-label="edit" color="primary">
+                <EditIcon
+                  onClick={() =>
+                    handleEdit(selected, rows, setOpen, setStudent)
+                  }
+                />
+              </IconButton>
+            </Tooltip>
+          )}
+        </div>
       ) : (
         <Tooltip title="Filter list">
           <IconButton aria-label="filter list">
@@ -229,18 +254,23 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Leaderboard(props) {
   const classes = useStyles();
-  const [order, setOrder] = React.useState("asc");
-  const [orderBy, setOrderBy] = React.useState("calories");
+  const [order, setOrder] = React.useState("desc");
+  const [orderBy, setOrderBy] = React.useState("percentage");
   const [selected, setSelected] = React.useState([]);
   const [page, setPage] = React.useState(0);
   const [dense, setDense] = React.useState(false);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [open, setOpen] = React.useState(false);
+  const [student, setStudent] = React.useState({});
 
   const { searchTerm } = props;
   const [rows, setRows] = React.useState([]);
 
   React.useEffect(() => {
-    if (!localStorage.rows) {
+    if (
+      localStorage.rows === undefined ||
+      localStorage.getItem("rows") === "null"
+    ) {
       axios
         .get(URL)
         .then((res) => {
@@ -254,18 +284,31 @@ export default function Leaderboard(props) {
       setRows(Object.keys(t).map((i) => t[i]));
       console.log(rows);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {
-    if (searchTerm) {
+    if (
+      searchTerm &&
+      localStorage.rows !== undefined &&
+      localStorage.getItem("rows") !== "null"
+    ) {
+      let t = JSON.parse(localStorage.rows);
       setRows(
-        rows.filter(
-          (i) => !i.name.toLowerCase().search(searchTerm.toLowerCase())
-        )
+        Object.keys(t)
+          .map((i) => t[i])
+          .filter((i) =>
+            i.name.toLowerCase().includes(searchTerm.toLowerCase())
+          )
       );
     } else {
-      let t = JSON.parse(localStorage.rows);
-      setRows(Object.keys(t).map((i) => t[i]));
+      if (
+        localStorage.rows !== undefined &&
+        localStorage.getItem("rows") !== "null"
+      ) {
+        let t = JSON.parse(localStorage.rows);
+        setRows(Object.keys(t).map((i) => t[i]));
+      }
     }
   }, [searchTerm]);
   const handleRequestSort = (event, property) => {
@@ -276,7 +319,7 @@ export default function Leaderboard(props) {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = rows.map((n) => n.name);
+      const newSelecteds = rows.map((n) => n.id);
       setSelected(newSelecteds);
       return;
     }
@@ -323,11 +366,16 @@ export default function Leaderboard(props) {
 
   return (
     <div className={classes.root}>
+      <ModalUI open={open} setOpen={setOpen}>
+        <Form request="PUT" student={student[0]} />
+      </ModalUI>
       <Paper className={classes.paper}>
         <EnhancedTableToolbar
           selected={selected}
           rows={rows}
           setRows={setRows}
+          setStudent={setStudent}
+          setOpen={setOpen}
         />
         <TableContainer>
           <Table
@@ -396,7 +444,7 @@ export default function Leaderboard(props) {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
+          rowsPerPageOptions={[10, 20, 30]}
           component="div"
           count={rows.length}
           rowsPerPage={rowsPerPage}

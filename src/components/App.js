@@ -37,9 +37,11 @@ const useStyles = makeStyles((theme) => ({
     },
     marginLeft: 0,
     width: "100%",
-    [theme.breakpoints.up("sm")]: {
-      marginLeft: theme.spacing(1),
-      width: "auto",
+    visibility: ({ search }) => search,
+    [theme.breakpoints.up("xs")]: {
+      marginLeft: theme.spacing(4),
+      width: "20ch",
+      visibility: ({ search }) => search,
     },
   },
   searchIcon: {
@@ -60,26 +62,19 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
     transition: theme.transitions.create("width"),
     width: "100%",
-    [theme.breakpoints.up("sm")]: {
-      width: "12ch",
-      "&:focus": {
-        width: "20ch",
-      },
-    },
   },
 }));
 
 function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
+  const { children, value, index, setSearch, ...other } = props;
+  if (value === 0) {
+    setSearch("hidden");
+  }
+  if (value === 1) {
+    setSearch("visible");
+  }
   return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
+    <div role="tabpanel" hidden={value !== index} {...other}>
       {value === index && (
         <Box p={3}>
           <Typography>{children}</Typography>
@@ -89,22 +84,19 @@ function TabPanel(props) {
   );
 }
 
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
-}
-
 export default function SearchAppBar() {
-  const classes = useStyles();
   const [value, setValue] = React.useState(0);
-  const [search, setSearch] = React.useState(0);
+  const [search, setSearch] = React.useState("hidden");
   const [searchTerm, setSearchTerm] = React.useState("");
 
+  const classes = useStyles({ search });
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+
+  React.useEffect(() => {
+    localStorage.clear();
+  }, []);
   return (
     <div className={classes.root}>
       <AppBar position="static">
@@ -118,8 +110,8 @@ export default function SearchAppBar() {
             onChange={handleChange}
             aria-label="simple tabs example"
           >
-            <Tab label="Enter Marks" {...a11yProps(0)} />
-            <Tab label="Leaderboard" {...a11yProps(1)} />
+            <Tab label="Enter Marks" />
+            <Tab label="Leaderboard" />
           </Tabs>
           {
             <div className={classes.search}>
@@ -140,12 +132,12 @@ export default function SearchAppBar() {
         </Toolbar>
       </AppBar>
       <Box>
-        <TabPanel value={value} index={0}>
-          <Form />
+        <TabPanel value={value} index={0} setSearch={setSearch}>
+          <Form request="POST" student={{}} />
         </TabPanel>
       </Box>
       <Box>
-        <TabPanel value={value} index={1} onclick={() => setSearch(1)}>
+        <TabPanel value={value} index={1} setSearch={setSearch}>
           <Leaderboard searchTerm={searchTerm} />
         </TabPanel>
       </Box>

@@ -5,8 +5,16 @@ import * as yup from "yup";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
+import { makeStyles } from "@material-ui/core/styles";
 
-const URL = `https://student-leaderboard-api-y57renyjuq-uc.a.run.app/api/v1/students`;
+const URL = `https://student-leaderboard-api-y57renyjuq-el.a.run.app//api/v1/students`;
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    maxWidth: 700,
+    margin: "0 auto",
+  },
+}));
 
 const validationSchema = yup.object({
   name: yup.string("Enter your Name").required("Name is required"),
@@ -32,16 +40,22 @@ const validationSchema = yup.object({
     .max(100),
 });
 
-export default function Form() {
+export default function Form(props) {
+  const classes = useStyles();
+  React.useEffect(() => {
+    console.log(props);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const { student, request } = props;
   const formik = useFormik({
     initialValues: {
-      name: "",
-      roll: "",
-      maths: 0,
-      physics: 0,
-      chemistry: 0,
-      total: 0,
-      percentage: 0,
+      name: student.name || "",
+      roll: student.roll || "",
+      maths: student.maths || 0,
+      physics: student.physics || 0,
+      chemistry: student.chemistry || 0,
+      total: student.total || 0,
+      percentage: student.percentage || 0,
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
@@ -53,26 +67,48 @@ export default function Form() {
       values.total = values.total.toString();
       values.percentage = values.percentage.toString();
       console.log(values);
-      axios
-        .post(URL, values)
-        .then((res) => {
-          console.log(res.data);
-          if (res.data.sqlMessage) {
-            alert(res.data.sqlMessage);
-          } else {
-            alert("Student saved successfully");
-          }
-          localStorage.clear();
-        })
-        .catch((e) => console.log(e));
+      if (request === "POST") {
+        axios
+          .post(URL, values)
+          .then((res) => {
+            console.log(res.data);
+            if (res.data.sqlMessage) {
+              alert(res.data.sqlMessage);
+            } else {
+              alert("Student saved successfully");
+            }
+            localStorage.clear();
+          })
+          .catch((e) => console.log(e));
+      }
+      if (request === "PUT") {
+        axios
+          .put(`${URL}/${student.id}`, values)
+          .then((res) => {
+            console.log(res.data);
+            if (res.data.sqlMessage) {
+              alert(res.data.sqlMessage);
+            } else {
+              alert("Student Updated successfully");
+            }
+            localStorage.clear();
+          })
+          .catch((e) => console.log(e));
+      }
     },
   });
 
   return (
     <div>
       <form onSubmit={formik.handleSubmit}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
+        <Grid
+          className={classes.root}
+          container
+          spacing={3}
+          justify="center"
+          maxWidth={700}
+        >
+          <Grid item md={12} xs={12}>
             <TextField
               fullWidth
               id="name"
@@ -85,7 +121,7 @@ export default function Form() {
             />
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item md={12} xs={12}>
             <TextField
               fullWidth
               id="roll"
@@ -98,8 +134,9 @@ export default function Form() {
               helperText={formik.touched.roll && formik.errors.roll}
             />
           </Grid>
-          <Grid item xs={4} sm={4}>
+          <Grid item md={4} xs={12}>
             <TextField
+              fullWidth
               id="physics"
               name="physics"
               label="Physics"
@@ -110,8 +147,9 @@ export default function Form() {
               helperText={formik.touched.physics && formik.errors.physics}
             />
           </Grid>
-          <Grid item xs={4} sm={4}>
+          <Grid item md={4} xs={12}>
             <TextField
+              fullWidth
               id="chemistry"
               name="chemistry"
               label="Chemistry"
@@ -124,8 +162,9 @@ export default function Form() {
               helperText={formik.touched.chemistry && formik.errors.chemistry}
             />
           </Grid>
-          <Grid item xs={4} sm={4}>
+          <Grid item md={4} xs={12}>
             <TextField
+              fullWidth
               id="maths"
               name="maths"
               label="Maths"
@@ -136,7 +175,7 @@ export default function Form() {
               helperText={formik.touched.maths && formik.errors.maths}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid item md={12} xs={12}>
             <TextField
               fullWidth
               id="total"
@@ -153,7 +192,7 @@ export default function Form() {
               helperText={formik.touched.total && formik.errors.total}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid item md={12} xs={12}>
             <TextField
               fullWidth
               id="percentage"
@@ -176,9 +215,11 @@ export default function Form() {
               helperText={formik.touched.percentage && formik.errors.percentage}
             />
           </Grid>
-          <Button color="primary" variant="contained" fullWidth type="submit">
-            Submit
-          </Button>
+          <Grid item xs={5} sm={3}>
+            <Button color="primary" fullWidth variant="contained" type="submit">
+              {request === "POST" ? "Submit" : "Update"}
+            </Button>
+          </Grid>
         </Grid>
       </form>
     </div>
