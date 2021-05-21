@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.js": "/static/js/main.9cc524bc.chunk.js",
-    "main.js.map": "/static/js/main.9cc524bc.chunk.js.map",
-    "runtime-main.js": "/static/js/runtime-main.900dd88b.js",
-    "runtime-main.js.map": "/static/js/runtime-main.900dd88b.js.map",
-    "static/js/2.476d9e1f.chunk.js": "/static/js/2.476d9e1f.chunk.js",
-    "static/js/2.476d9e1f.chunk.js.map": "/static/js/2.476d9e1f.chunk.js.map",
-    "index.html": "/index.html",
-    "static/js/2.476d9e1f.chunk.js.LICENSE.txt": "/static/js/2.476d9e1f.chunk.js.LICENSE.txt"
+    "main.js": "/alma-material-client/static/js/main.9cc524bc.chunk.js",
+    "main.js.map": "/alma-material-client/static/js/main.9cc524bc.chunk.js.map",
+    "runtime-main.js": "/alma-material-client/static/js/runtime-main.655b1916.js",
+    "runtime-main.js.map": "/alma-material-client/static/js/runtime-main.655b1916.js.map",
+    "static/js/2.476d9e1f.chunk.js": "/alma-material-client/static/js/2.476d9e1f.chunk.js",
+    "static/js/2.476d9e1f.chunk.js.map": "/alma-material-client/static/js/2.476d9e1f.chunk.js.map",
+    "index.html": "/alma-material-client/index.html",
+    "static/js/2.476d9e1f.chunk.js.LICENSE.txt": "/alma-material-client/static/js/2.476d9e1f.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.900dd88b.js",
+    "static/js/runtime-main.655b1916.js",
     "static/js/2.476d9e1f.chunk.js",
     "static/js/main.9cc524bc.chunk.js"
   ]
